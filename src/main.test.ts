@@ -17,6 +17,15 @@ testRunner([
   
   { name: 'not implemented', fn: async () => {
     
+    // TODO: HEEERE0
+    // - Recomputation of `getPetals` is very bad; need to memoize it 1st time around
+    // - Need heavy test for aws (not localstack):
+    //    - IDEALLY: ephemeral, isolated aws org (created+deleted in the test's lifecycle)
+    //    - Test WAF, CF, and L@E via *webhook*
+    //    - If a webhook test can pass with WAF+CF in play we are soooo good to go
+    //    - More various pollen tests, e.g. lambda write item to db with iam perms etc.
+    //    - And then will want to focus on ECS Flower, maybe spacetimedb?
+    
     // TODO: Implement!
     assertEqual(null, null);
     
