@@ -235,7 +235,7 @@ export class HttpGateway extends Flower {
   public async cultivate() {
   }
   
-  async getPetals(ctx: LilacContext & { soil: Soil.Base }) {
+  async computePetals(ctx: LilacContext & { soil: Soil.Base }) {
     
     // TODO: Prevent direct access to api gateway via public invoke url:
     // Add resource policies to API Gateway to only allow requests from CloudFront.
@@ -522,8 +522,6 @@ export class HttpGateway extends Flower {
       
     });
     
-    // TODO: HEEERE1 calling `super.getPetals` can be very heavy - e.g. does all lambda bundling!!
-    // Currently it's happening at several callsites (grep for `[.]getPetals`)
     const lambdaPetal = (await lbdEdge.getPetals(ctx)).find(p => p.getType() === 'awsLambdaFunction')!;
     
     const baseCacheConfigHttp = addPetal(new Resource('awsCloudfrontCachePolicy', this.name, {

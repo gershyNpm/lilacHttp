@@ -172,7 +172,7 @@ export class LambdaEdge<
     
   }
   
-  async getPetals(ctx: LilacContext & { soil: Soil.Base }) {
+  async computePetals(ctx: LilacContext & { soil: Soil.Base }) {
     
     const petals: PetalTerraform.Base[] = [];
     
@@ -226,7 +226,7 @@ export class LambdaEdge<
   }
   getInvokeWrapper() {
     
-    type LbdCls = typeof LambdaBase<LambdaEdgeShape, Res, any, any, any, any>;
+    type LbdCls = typeof LambdaBase<LambdaEdgeShape, Res, LocalData, LaunchData, Cdc, Env>;
     type LbdInvokeWrapper = ReturnType<InstanceType<LbdCls>['getInvokeWrapper']>;
     
     return (async args => {
