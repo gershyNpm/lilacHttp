@@ -224,7 +224,9 @@ export class LambdaEdge<
     } as LambdaEdgeCodec);
     
   }
-  getInvokeWrapper() {
+  
+  // Explicit return type is needed to avoid tsc type length limits :((((
+  getInvokeWrapper(): ReturnType<InstanceType<typeof LambdaBase<LambdaEdgeShape, Res, LocalData, LaunchData, Cdc, Env>>['getInvokeWrapper']> {
     
     type LbdCls = typeof LambdaBase<LambdaEdgeShape, Res, LocalData, LaunchData, Cdc, Env>;
     type LbdInvokeWrapper = ReturnType<InstanceType<LbdCls>['getInvokeWrapper']>;
