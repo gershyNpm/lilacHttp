@@ -148,7 +148,7 @@ export const getLambdaEdgeCodec = () => ({
     uri: { type: 'str' }
   },
   fn: (rec) => {
-    
+    // TODO: HEEERE1
   }
 } as const);
 type LambdaEdgeCodec = ReturnType<typeof getLambdaEdgeCodec>;
@@ -250,7 +250,7 @@ export class LambdaEdge<
         const invokeRes = invokeFn({ debug, logger, jsfnImport, shapeData: { ctx, req }, launchData, args: parsedArgs });
         
         // It's possibly essential to mutate the actual `req` - will need to be painstakingly
-        // tested with a cloudfront deployment...
+        // tested with a terraform deployment...
         return Object.assign(req0, {
           headers: (invokeRes.headers ?? {})[cl.map](v => cl.isCls(v, Array) ? v : [ v ]),
           uri: invokeRes.uri
