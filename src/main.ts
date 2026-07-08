@@ -10,14 +10,14 @@ import * as aws from './util/aws.ts';
 import * as tf from './util/terraform.ts';
 import { ApiGatewayManagementApiClient as ApiGwClient, PostToConnectionCommand as SocketSend } from '@aws-sdk/client-apigatewaymanagementapi';
 import awsRegions from './util/awsRegions.ts';
-import { getLambdaEdgeCodec, LambdaEdge } from './lambdaEdge/main.ts';
+import { LambdaEdge } from './lambdaEdge/main.ts';
 import phrasing from '@gershy/util-phrasing';
 
 type AnyLambdaHttp = LambdaHttp<any, any, any, any, any>;
 type LambdaHttpRes<Lbd extends AnyLambdaHttp> = Lbd extends LambdaHttp<infer Res, any, any, any, any> ? Res : never;
 
-const map:      typeof cl.map      = cl.map;
-const upper:    typeof cl.upper    = cl.upper;
+const map:   typeof cl.map   = cl.map;
+const upper: typeof cl.upper = cl.upper;
 
 export class HttpHandler<Req extends HttpReq, Res extends HttpRes> {
   
@@ -179,6 +179,7 @@ export class HttpGateway extends Flower {
     for (const { lambda } of this.httpRoutes) yield* lambda.getDependencies();
     for (const { lambda } of this.soktRoutes) yield* lambda.getDependencies();
     for (const { lambda } of this.managers)   yield* lambda.getDependencies();
+    
   }
   
   // TODO: Lambdas aren't the only possible http handlers! Should add integrations for other
@@ -509,7 +510,7 @@ export class HttpGateway extends Flower {
       name:      `${this.name}SoktEdgeFn`,
       memoryMb:  100,
       localData: {},
-      codec:     getLambdaEdgeCodec(), // { type: 'rec', props: { z: { type: 'num' } } } as const,
+      codec:     { type: 'rec', loose: true, props: { uri: { type: 'str' } } } as const,
       baseUrl:   import.meta.url,
       launchFn:  ctx => null,
       env:       {},

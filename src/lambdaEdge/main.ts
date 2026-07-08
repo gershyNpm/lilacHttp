@@ -1,5 +1,5 @@
 import { PetalTerraform, Soil, type Context as LilacContext } from '@gershy/lilac';
-import { LambdaBase, type LambdaShape }                       from '@gershy/lilac-lambda';
+import { LambdaBase, type LambdaNativeShape }                 from '@gershy/lilac-lambda';
 import * as tf                                                from '../util/terraform.ts';
 import awsRegions                                             from '../util/awsRegions.ts';
 import phrasing                                               from '@gershy/util-phrasing';
@@ -118,7 +118,6 @@ import type { Jsfn }                                          from '@gershy/util
   
 });
 
-
 type OriginRequest = {
   headers: { [K: string]: string[] },
   uri: string
@@ -126,7 +125,7 @@ type OriginRequest = {
 type OriginRequestEvent = { Records: { cf: { request: OriginRequest } }[] }; // TODO: Under what circumstances are there multiple Records??
 type Assign<A, B> = Omit<A, keyof B> & B;
 
-export type LambdaEdgeShape = LambdaShape & {
+export type LambdaEdgeShape = LambdaNativeShape & {
   
   ctx: {
     callbackWaitsForEmptyEventLoop: boolean,
@@ -140,27 +139,14 @@ export type LambdaEdgeShape = LambdaShape & {
   
 };
 
-export const getLambdaEdgeCodec = () => ({
-  type: 'rec',
-  props: {
-    headerArrs: { type: 'map', item: { type: 'arr', item: { type: 'str' } } },
-    headers: { type: 'map', item: { type: 'str' } },
-    uri: { type: 'str' }
-  },
-  fn: (rec) => {
-    // TODO: HEEERE1
-  }
-} as const);
-type LambdaEdgeCodec = ReturnType<typeof getLambdaEdgeCodec>;
-
 export class LambdaEdge<
   
   // TODO: Is this `LambdaEdge`? Or `LambdaEdgeHttpRequestRewrite`??
   
   Res extends { headers?: { [K: string]: string | string[] }, uri: string }, // The lambda's particular response
-  LocalData extends Jsfn, // Data provided to lambda by project
-  LaunchData, // Arbitrary data initialized by lambda on cold-start
-  Cdc extends Codec.Rec<any> & LambdaEdgeCodec, // Codec for validating incoming invocation args
+  LocalData extends Jsfn,                                                    // Data provided to lambda by project
+  LaunchData,                                                                // Arbitrary data initialized by lambda on cold-start
+  Cdc extends Codec.Rec<any>,                                                // Codec for validating incoming invocation args
   Env extends Obj<string>
   
 > extends LambdaBase<LambdaEdgeShape, Res, LocalData, LaunchData, Cdc, Env> {
@@ -212,19 +198,6 @@ export class LambdaEdge<
     
   }
   
-  getGenericCodecFn() {
-    
-    return () => ({
-      type: 'rec',
-      props: {
-        headerArrs: { type: 'map', item: { type: 'arr', item: { type: 'str' } } },
-        headers: { type: 'map', item: { type: 'str' } },
-        uri: { type: 'str' }
-      }
-    } as LambdaEdgeCodec);
-    
-  }
-  
   // Explicit return type is needed to avoid tsc type length limits :((((
   getInvokeWrapper(): ReturnType<InstanceType<typeof LambdaBase<LambdaEdgeShape, Res, LocalData, LaunchData, Cdc, Env>>['getInvokeWrapper']> {
     
@@ -242,6 +215,7 @@ export class LambdaEdge<
         
         const req0 = req.Records[0].cf.request;
         const parsedArgs = codecParse(codec, {
+          // TODO: `Built<string>` headers??
           headerArrs: req0.headers,
           headers: req0.headers[cl.map](h => h[0]),
           uri: req0.uri
