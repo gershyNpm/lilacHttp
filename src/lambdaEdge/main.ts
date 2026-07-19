@@ -1,4 +1,4 @@
-import { PetalTerraform, Soil, type Context as LilacContext } from '@gershy/lilac';
+import { PetalTerraform } from '@gershy/lilac';
 import { LambdaBase, type LambdaNativeShape }                 from '@gershy/lilac-lambda';
 import * as tf                                                from '../util/terraform.ts';
 import awsRegions                                             from '../util/awsRegions.ts';
@@ -6,7 +6,7 @@ import phrasing                                               from '@gershy/util
 import type { Codec }                                         from '@gershy/util-codec-parse';
 import type { Jsfn }                                          from '@gershy/util-jsfn-encode';
 
-// TODO: What's built here is specifically a "request-mapping lambda@edge"!
+// TODO: This is specifically a "request-mapping lambda@edge"!
 
 // Old approach
 (() => {
@@ -153,24 +153,28 @@ export class LambdaEdge<
   
   constructor(args: Assign<ConstructorParameters<typeof LambdaBase<LambdaEdgeShape, Res, LocalData, LaunchData, Cdc, Env>>[0], { timeoutMs?: number, memoryMb?: number }>) {
     
-    const defaults = { timeoutMs: 5000, memoryMb: 100 };
-    super({ ...defaults, ...args });
+    super({ timeoutMs: 5000, memoryMb: 128, ...args });
     
   }
   
-  async computePetals(ctx: LilacContext & { soil: Soil.Base }) {
+  getPrincipalServices() {
+    return [ 'lambda.amazonaws.com', 'edgelambda.amazonaws.com' ];
+  }
+  
+  async * computePetals() {
     
-    const petals: PetalTerraform.Base[] = [];
-    
-    for (const petal of await super.getPetals(ctx))
-      petals.push(petal);
+    const petals: PetalTerraform.Base[] = await super.computePetals()[cl.toArr](v => v);
     
     const lambdaPetal = petals.find(p => p.getType() === 'awsLambdaFunction')!;
     if (!cl.isCls(lambdaPetal, PetalTerraform.Resource)) throw Error('unexpected');
+    
     lambdaPetal.mergeProps({
-      ...tf.provider(ctx.soil.getRegion(), 'us-east-1'),
+      
       publish: true,
-      timeout: 5
+      timeout: 5,
+      
+      ...(this.memoryMb === 128 ? { memoryMb: cl.skip } : {})
+      
     });
     
     // Add a log group for lambda@edge... FOR EVERY REGION OWWWW
@@ -183,7 +187,7 @@ export class LambdaEdge<
       petals.push(new PetalTerraform.Resource('awsCloudwatchLogGroup', `${this.name}LambdaEdgeLogs${phrasing('camel->kamel', region.mini)}`, {
         
         // Connect this log group to the region
-        ...tf.provider(ctx.soil.getRegion(), region.term),
+        ...tf.provider(this.soil.getRegion(), region.term),
         
         // Note the log group name will always include "us-east-1" as cloudfront resources (like
         // lambda@edge) are considered to be provisioned there, even though these resources are
@@ -194,7 +198,7 @@ export class LambdaEdge<
         
       }));
     
-    return petals;
+    yield* petals;
     
   }
   

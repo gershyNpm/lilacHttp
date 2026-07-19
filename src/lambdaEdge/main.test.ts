@@ -1,5 +1,4 @@
-import { rootFact, tempFact } from '@gershy/disk';
-import { assertEqual, testRunner } from '../../build/utils.test.ts';
+import { assertEqual } from '../../build/utils.test.ts';
 import './main.ts';
 import { LambdaEdge } from './main.ts';
 import Logger from '@gershy/logger';
@@ -23,20 +22,7 @@ const getLambdaInvokeFn = async <Lbd extends AnyLambda>(lbd: Lbd) => {
   // TODO: This harness to extract and execute a lambda's generated javascript already repeats
   // here and in lilacLambdaHttp - consider a shared helper??
   
-  const script = await lbd.getScript({
-    ctx: {
-      name:      'test',
-      logger:    new Logger('test'),
-      fact:      rootFact.kid([ import.meta.dirname, 'infra' ]),
-      patioFact: rootFact.kid([ import.meta.dirname, 'infra', 'patio' ]),
-      shedFact:  tempFact.kid([ '@gershy' ]),
-      
-      maturity: 'm0',
-      debug: true,
-      pfx: 'test'
-    },
-    lang: 'js'
-  });
+  const script = await lbd.getScript({ lang: 'js' });
   
   const require = (term: string) => {
     if (term === '@gershy/clearing') return null;
@@ -60,13 +46,23 @@ const getLambdaInvokeFn = async <Lbd extends AnyLambda>(lbd: Lbd) => {
   
 };
 
-testRunner([
+export default [
   
   { name: 'sourcecode gen', fn: async () => {
     
     // Instantiates a `JsfnUtility` instance with `a = 'util'`, and takes an http body param `b`,
     // which is a number, to call `JsfnUtility.prototype.helperFn`, which returns `a.repeat(b)`
     const lbd = new LambdaEdge({
+      
+      context: {
+        pfx: 'tezzztLambdaAtEdge',
+        debug: true,
+        progressiveServiceMap: {}
+      } as any,
+      soil: {
+        getRegion: () => 'ca-central-1'
+      } as any,
+      
       name: 'myLbd',
       baseUrl: import.meta.url,
       memoryMb: 128,
@@ -75,6 +71,7 @@ testRunner([
       launchFn: args => ({}),
       invokeFn: ({ launchData, args }) => ({ uri: '/overwritten/path' }),
       env: {}
+      
     });
     
     const invoke = await getLambdaInvokeFn(lbd);
@@ -107,6 +104,6 @@ testRunner([
     
     assertEqual(res, { headers: {}, uri: '/overwritten/path' });
     
-  }},
+  }}
   
-]);
+];

@@ -1,4 +1,4 @@
-export default [
+export default ([
   
   'ca-central-1',
   
@@ -43,7 +43,7 @@ export default [
   // 'us-gov-east-1',
   // 'us-gov-west-1',
   
-][cl.map](region => {
+] as const)[cl.map](region => {
   const [ c, z, num ] = region.split('-');
   const [ dir0, dir1 = dir0 ] = z.match(/central|north|south|east|west/g)!;
   return { term: region, mini: [ c, dir0[0], dir1[0], num ].join('') };
