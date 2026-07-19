@@ -1,6 +1,6 @@
 {
   "name": "@gershy/lilac-http",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "Gershom Maes",
   "description": "TODO",
   "keywords": [
@@ -21,7 +21,7 @@
   "dependencies": {
     "@aws-sdk/client-apigatewaymanagementapi": "^3.1081.0",
     "@aws-sdk/client-cloudfront": "^3.1086.0",
-    "@gershy/lilac-domain": "^0.0.9",
+    "@gershy/lilac-domain": "^0.0.10",
     "@gershy/lilac-lambda-http": "^0.0.16",
     "@gershy/util-jsfn-encode": "^0.0.12",
     "@gershy/util-phrasing": "^0.0.13"
